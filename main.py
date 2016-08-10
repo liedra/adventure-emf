@@ -1,4 +1,4 @@
-### Author: liedra
+### Author: @liedra
 ### Description: A short adventure in which you may wish to kick orcs.
 ### Category: Games
 ### License: MIT
@@ -13,6 +13,8 @@ import pyb
 ugfx.init()
 buttons.init()
 buttons.disable_menu_reset()
+bz=pyb.Pin(pyb.Pin.cpu.D12, pyb.Pin.OUT_PP) # music comes from here
+
 
 room = 1
 
@@ -20,6 +22,8 @@ haskey1=0
 haskey2=0
 hp=50
 orc1=10
+orc2=10
+orc3=20
 btn_a_presses=0
 
 
@@ -42,6 +46,13 @@ def setup_right_menu():
 			ugfx.text(190, 30, "An orc is here.", ugfx.RED)
 			ugfx.text(190, 50, "A: Kick", ugfx.RED)
 			ugfx.text(190, 70, "B: Punch", ugfx.RED)
+			
+	if room==5:
+		if orc2:
+			ugfx.text(190, 30, "A slightly bigger", ugfx.RED) 
+			ugfx.text(190, 50, "orc is here.", ugfx.RED)
+			ugfx.text(190, 70, "A: Kick", ugfx.RED)
+			ugfx.text(190, 90, "B: Tell it a joke", ugfx.RED)
 			
 	if room==9:
 		ugfx.text(190, 30, "A key is here.", ugfx.RED)
@@ -97,9 +108,7 @@ def room_1():
 	
 def room_2():
 	###Room 2 - exits south, west, east
-	print ("drawing room 2")
 	room=2
-	btn_a_presses=0
 	
 	ugfx.clear(ugfx.BLACK)
 	setup_right_menu()
@@ -115,7 +124,6 @@ def room_2():
 def room_3():
 	###Room 3 - exits north, east
 	room=3
-	btn_a_presses=0
 	ugfx.clear(ugfx.BLACK)
 	setup_right_menu()
 	build_room_walls(1,1,0,0)
@@ -125,7 +133,6 @@ def room_4():
 	###Room 4 - exits west
 	room=4
 	print ("here")
-	btn_a_presses=0
 	ugfx.clear(ugfx.BLACK)
 	setup_right_menu()
 	build_room_walls(0,0,0,1)
@@ -134,16 +141,20 @@ def room_4():
 def room_5():
 	###Room 5 - exits ES
 	room=5
+	global btn_a_presses
 	btn_a_presses=0
 	ugfx.clear(ugfx.BLACK)
 	setup_right_menu()
 	build_room_walls(0,1,1,0)
 	ugfx.fill_circle(100,150,5,ugfx.YELLOW)
+	if orc2>0:
+		ugfx.fill_circle(70,70,10,ugfx.GREEN)
+	else:
+		ugfx.fill_circle(70,70,10,ugfx.RED)
 
 def room_6():
 	###Room 6 - exits EW
 	room=6
-	btn_a_presses=0
 	ugfx.clear(ugfx.BLACK)
 	setup_right_menu()
 	build_room_walls(0,1,0,1)
@@ -152,7 +163,6 @@ def room_6():
 def room_7():
 	###Room 7 - exits EW
 	room=7
-	btn_a_presses=0
 	ugfx.clear(ugfx.BLACK)
 	setup_right_menu()
 	build_room_walls(0,1,0,1)	
@@ -162,7 +172,6 @@ def room_7():
 def room_8():
 	###Room 8 - exits WS
 	room=8
-	btn_a_presses=0
 	ugfx.clear(ugfx.BLACK)
 	setup_right_menu()
 	build_room_walls(0,0,1,1)
@@ -171,7 +180,6 @@ def room_8():
 def room_9():
 	###Room 9 - exits NES
 	room=9
-	btn_a_presses=0
 	ugfx.clear(ugfx.BLACK)
 	setup_right_menu()
 	build_room_walls(1,0,0,0)
@@ -190,13 +198,13 @@ def game_over(reason):
 	ugfx.text(20,100,reason,ugfx.RED)
 	playing=0
 	
-def orc_kicking(strength, orc1, hp):
+def orc_kicking(strength, orc, hp):
 	ugfx.area(190,30,300,180, ugfx.BLACK)
 	damage_orc = (pyb.rng()%6)
 	ugfx.text(190, 30, "You kick the orc!", ugfx.WHITE)
 	ugfx.text(190, 50, "The orc takes", ugfx.WHITE)
 	ugfx.text(190, 70, str(damage_orc)+" damage.", ugfx.WHITE)
-	orc1 = orc1-damage_orc
+	orc = orc-damage_orc
 	tone(155.563,250,30)
 	pyb.delay(1000)
 	damage = (pyb.rng()%strength)
@@ -210,9 +218,8 @@ def orc_kicking(strength, orc1, hp):
 	
 	ugfx.area(30,200,180,250, ugfx.BLACK)
 	ugfx.text(30, 200, "HP: "+str(hp), ugfx.BLUE)
-	return orc1,hp
+	return orc,hp
 
-bz=pyb.Pin(pyb.Pin.cpu.D12, pyb.Pin.OUT_PP)
 
 def tone(f,t,b=0):
     global bz
@@ -301,24 +308,29 @@ while True:
 				room_6()
 			elif room==6:
 				room=5
+				
 				room_5()
 		if buttons.is_triggered("JOY_RIGHT"):
 			if room == 2:
 				if orc1 >0:
-					game_over("The orc killed you!")
+					game_over("The orc gobbled you up!")
 					break
 				else:
 					print ("going to room 4")
 					room=4
 					room_4()
-					print ("post room")
 
 			elif room == 3:
 				room=2
 				room_2()
 			elif room==5:
-				room=6
-				room_6()
+				if orc2 >0:
+					game_over("The orc gobbled you up!")
+					break
+				else:
+					room=6
+					room_6()
+		
 			elif room==6:
 				room=7
 				room_7()
@@ -347,6 +359,27 @@ while True:
 				elif (hp>=0):
 					game_over("The orc kicked you to death!")
 					break
+			elif room==5:
+				ugfx.area(190,30,300,180, ugfx.BLACK)
+				if btn_a_presses==1:
+					ugfx.text(190, 30, "With which leg?", ugfx.RED)
+					ugfx.text(190, 50, "A: Left", ugfx.RED)
+					ugfx.text(190, 70, "B: Right", ugfx.RED)
+					ugfx.text(190, 90, "Joy Press: Middle", ugfx.RED)
+				
+				elif (btn_a_presses>1 and orc2 > 0 and hp >0):
+					orc2,hp=orc_kicking(6, orc2, hp)
+					if orc2<=0:
+						ugfx.fill_circle(130,70,10,ugfx.RED)	
+				
+				elif (orc2<=0 and hp>0):
+					ugfx.text(190, 30, "The orc is dead.", ugfx.RED)
+					ugfx.text(190, 50, "It would be mean ", ugfx.RED)
+					ugfx.text(190, 70, "to kick it again.", ugfx.RED)
+				elif (hp>=0):
+					game_over("The orc kicked you to death!")
+					break
+					
 			elif room==9:
 				ugfx.fill_circle(100,165,5,ugfx.BLACK)
 				ugfx.area(190,30,300,180, ugfx.BLACK)
@@ -379,6 +412,49 @@ while True:
 					pyb.delay(1000)
 					room=1
 					room_1()
+			if room == 5:
+				if btn_a_presses==1 and orc2>0:
+					#right kick
+					orc2,hp=orc_kicking(6, orc2, hp)
+					if orc2<=0:
+						ugfx.fill_circle(130,70,10,ugfx.RED)
+				elif btn_a_presses==0 and orc2>0:
+					#tell a joke
+					ugfx.area(190,30,300,180, ugfx.BLACK)
+					
+					ugfx.text(190, 30, "Why do orcs belch", ugfx.WHITE)
+					ugfx.text(190, 50, "so much?", ugfx.WHITE)
+					pyb.delay(3000)
+					
+					ugfx.text(190, 70, "Because they're", ugfx.WHITE)
+					ugfx.text(190, 90, "always goblin!", ugfx.WHITE) #thanks davidc
+					orc2=0
+					pyb.delay(1000)
+					ugfx.text(80, 50, "Ha", ugfx.WHITE)
+					pyb.delay(1000)
+					
+					ugfx.text(100, 50, "ha", ugfx.WHITE)
+					pyb.delay(1000)
+					
+					ugfx.text(120, 50, "ha...", ugfx.WHITE)
+					pyb.delay(1000)
+					
+					ugfx.fill_circle(70,70,10,ugfx.RED)	
+					pyb.delay(1000)
+					
+					ugfx.text(190, 110, "The orc dies ", ugfx.RED)
+					ugfx.text(190, 130, "of laughter.", ugfx.RED)
+					
+					
+				elif btn_a_presses>1 and orc2>0:
+					#running away
+					ugfx.area(190,30,300,180, ugfx.BLACK)
+					ugfx.text(190, 110, "You run back to ", ugfx.RED)
+					ugfx.text(190, 130, "safety.", ugfx.RED)
+					pyb.delay(1000)
+					room=1
+					room_1()
+					
 			elif room==9:
 				ugfx.fill_circle(100,172,5,ugfx.BLACK)
 				ugfx.area(190,30,300,180, ugfx.BLACK)
