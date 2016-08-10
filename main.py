@@ -53,6 +53,11 @@ def setup_right_menu():
 			ugfx.text(190, 50, "orc is here.", ugfx.RED)
 			ugfx.text(190, 70, "A: Kick", ugfx.RED)
 			ugfx.text(190, 90, "B: Tell it a joke", ugfx.RED)
+	if room==6:
+		ugfx.text(190, 30, "A fountain", ugfx.RED) 
+		ugfx.text(190, 50, "is here.", ugfx.RED)
+		ugfx.text(190, 70, "A: Drink", ugfx.RED)
+		ugfx.text(190, 90, "B: Look in", ugfx.RED)
 			
 	if room==9:
 		ugfx.text(190, 30, "A key is here.", ugfx.RED)
@@ -158,7 +163,10 @@ def room_6():
 	ugfx.clear(ugfx.BLACK)
 	setup_right_menu()
 	build_room_walls(0,1,0,1)
-	ugfx.fill_circle(100,150,5,ugfx.YELLOW)
+	ugfx.area(90,100,20,20,ugfx.BLUE)
+	
+	ugfx.fill_circle(80,100,5,ugfx.YELLOW)
+	
 
 def room_7():
 	###Room 7 - exits EW
@@ -261,6 +269,7 @@ ugfx.text(20,100,"Escape from the Castle!",ugfx.RED)
 play_theme()
 pyb.delay(2000)
 room_1()
+###start at this room
 
 
 while True:
@@ -357,7 +366,7 @@ while True:
 					ugfx.text(190, 50, "It would be mean ", ugfx.RED)
 					ugfx.text(190, 70, "to kick it again.", ugfx.RED)
 				elif (hp>=0):
-					game_over("The orc kicked you to death!")
+					game_over("Arrogance is death!")
 					break
 			elif room==5:
 				ugfx.area(190,30,300,180, ugfx.BLACK)
@@ -370,16 +379,35 @@ while True:
 				elif (btn_a_presses>1 and orc2 > 0 and hp >0):
 					orc2,hp=orc_kicking(6, orc2, hp)
 					if orc2<=0:
-						ugfx.fill_circle(130,70,10,ugfx.RED)	
+						ugfx.fill_circle(70,70,10,ugfx.RED)	
 				
 				elif (orc2<=0 and hp>0):
 					ugfx.text(190, 30, "The orc is dead.", ugfx.RED)
 					ugfx.text(190, 50, "It would be mean ", ugfx.RED)
 					ugfx.text(190, 70, "to kick it again.", ugfx.RED)
 				elif (hp>=0):
-					game_over("The orc kicked you to death!")
+					game_over("Arrogance is death!")
 					break
+			elif room==6:
+				ugfx.area(190,30,300,180, ugfx.BLACK)
+				ugfx.text(190, 30, "You feel a lot", ugfx.RED)
+				ugfx.text(190, 50, "better!", ugfx.RED)	
+				ugfx.text(190, 70, "A: Drink more", ugfx.RED)
+				ugfx.text(190, 90, "B: Look in", ugfx.RED)
+				hp+=10
+
+				ugfx.area(30,200,180,250, ugfx.BLACK)
+				ugfx.text(30, 200, "HP: "+str(hp), ugfx.BLUE)
+				if hp>50:
+					ugfx.area(190,30,300,180, ugfx.BLACK)
+					ugfx.text(190, 30, "You feel really", ugfx.RED)
+					ugfx.text(190, 50, "full!", ugfx.RED)	
+					pyb.delay(1000)
+					ugfx.text(190, 70, "You burst!", ugfx.RED)
+					pyb.delay(2000)
 					
+					game_over("Moderation is key!")
+				
 			elif room==9:
 				ugfx.fill_circle(100,165,5,ugfx.BLACK)
 				ugfx.area(190,30,300,180, ugfx.BLACK)
@@ -454,6 +482,15 @@ while True:
 					pyb.delay(1000)
 					room=1
 					room_1()
+			elif room==6:
+				ugfx.area(190,30,300,180, ugfx.BLACK)
+				ugfx.text(190, 30, "You stare into", ugfx.RED)
+				ugfx.text(190, 50, "the depths.", ugfx.RED)
+				pyb.delay(1000)
+				ugfx.text(190, 70, "You fall in!", ugfx.RED)	
+				pyb.delay(1000)
+				
+				game_over("Drowned in a fountain.")
 					
 			elif room==9:
 				ugfx.fill_circle(100,172,5,ugfx.BLACK)
@@ -462,6 +499,8 @@ while True:
 				ugfx.text(190, 50, "You swallow it.", ugfx.RED)
 				pyb.delay(1000)
 				ugfx.text(190, 70, "You choke to death.", ugfx.RED)	
+				pyb.delay(1000)
+				
 				game_over("Choked to death on key.")			
 		
 		if buttons.is_triggered("JOY_CENTER"):
