@@ -2,6 +2,7 @@
 ### Description: A short adventure in which you may wish to kick orcs.
 ### Category: Games
 ### License: MIT
+### reboot-before-run: True
 ### Appname : Adventure! 
 
 #this code is really ugly, I'm not a good progammer, I'm sorry
@@ -12,9 +13,8 @@ import pyb
  
 ugfx.init()
 buttons.init()
-buttons.disable_menu_reset()
 bz=pyb.Pin(pyb.Pin.cpu.D12, pyb.Pin.OUT_PP) # music comes from here
-
+buttons.enable_menu_reset()
 
 room = 1
 
@@ -30,7 +30,6 @@ btn_a_presses=0
 	
 def setup_right_menu():
 	ugfx.set_default_font(ugfx.FONT_SMALL)
-	print (haskey1)
 
 	if room==1:
 		if (haskey1==0):
@@ -58,6 +57,14 @@ def setup_right_menu():
 		ugfx.text(190, 50, "is here.", ugfx.RED)
 		ugfx.text(190, 70, "A: Drink", ugfx.RED)
 		ugfx.text(190, 90, "B: Look in", ugfx.RED)
+		
+	if room==8:
+		if orc3:
+			ugfx.text(190, 30, "A humongous", ugfx.RED) 
+			ugfx.text(190, 50, "orc is here.", ugfx.RED)
+			ugfx.text(190, 70, "A: Kick", ugfx.RED)
+			ugfx.text(190, 90, "B: Sneak past", ugfx.RED)
+			
 			
 	if room==9:
 		ugfx.text(190, 30, "A key is here.", ugfx.RED)
@@ -179,11 +186,18 @@ def room_7():
 
 def room_8():
 	###Room 8 - exits WS
+	global btn_a_presses
+	btn_a_presses=0
 	room=8
 	ugfx.clear(ugfx.BLACK)
 	setup_right_menu()
 	build_room_walls(0,0,1,1)
 	ugfx.fill_circle(100,150,5,ugfx.YELLOW)
+	
+	if orc3>0:
+		ugfx.fill_circle(70,70,20,ugfx.GREEN)
+	else:
+		ugfx.fill_circle(70,70,30,ugfx.RED)
 	
 def room_9():
 	###Room 9 - exits NES
@@ -325,7 +339,6 @@ while True:
 					game_over("The orc gobbled you up!")
 					break
 				else:
-					print ("going to room 4")
 					room=4
 					room_4()
 
@@ -407,7 +420,26 @@ while True:
 					pyb.delay(2000)
 					
 					game_over("Moderation is key!")
+			elif room==8:
+				ugfx.area(190,30,300,180, ugfx.BLACK)
+				if btn_a_presses==1 and orc3>0:
+					ugfx.text(190, 30, "With which leg?", ugfx.RED)
+					ugfx.text(190, 50, "A: Left", ugfx.RED)
+					ugfx.text(190, 70, "B: Right", ugfx.RED)
+					ugfx.text(190, 90, "Joy Press: Middle", ugfx.RED)
 				
+				elif (btn_a_presses>1 and orc3 > 0 and hp >0):
+					orc3,hp=orc_kicking(6, orc3, hp)
+					if orc3<=0:
+						ugfx.fill_circle(70,70,20,ugfx.RED)	
+				
+				elif (orc3<=0 and hp>0):
+					ugfx.text(190, 30, "The orc is dead.", ugfx.RED)
+					ugfx.text(190, 50, "It would be mean ", ugfx.RED)
+					ugfx.text(190, 70, "to kick it again.", ugfx.RED)
+				elif (hp>=0):
+					game_over("Arrogance is death!")
+					break	
 			elif room==9:
 				ugfx.fill_circle(100,165,5,ugfx.BLACK)
 				ugfx.area(190,30,300,180, ugfx.BLACK)
@@ -482,6 +514,7 @@ while True:
 					pyb.delay(1000)
 					room=1
 					room_1()
+				
 			elif room==6:
 				ugfx.area(190,30,300,180, ugfx.BLACK)
 				ugfx.text(190, 30, "You stare into", ugfx.RED)
@@ -491,7 +524,29 @@ while True:
 				pyb.delay(1000)
 				
 				game_over("Drowned in a fountain.")
+			if room == 8:
+				if btn_a_presses==1 and orc3>0:
+					#right kick
+					orc3,hp=orc_kicking(6, orc3, hp)
+					if orc3<=0:
+						ugfx.fill_circle(70,70,20,ugfx.RED)
+				elif btn_a_presses==0 and orc3>0:
+					#sneak
+					ugfx.text(190, 110, "You try to sneak", ugfx.RED)
+					ugfx.text(190, 130, "past the giant orc", ugfx.RED)
+					pyb.delay(1000)
 					
+					ugfx.text(190, 150, "It doesn't work.", ugfx.RED)
+					pyb.delay(1000)
+					game_over("Never sneak past an orc!")
+				elif btn_a_presses>1 and orc3>0:
+					#running away
+					ugfx.area(190,30,300,180, ugfx.BLACK)
+					ugfx.text(190, 110, "You run back to ", ugfx.RED)
+					ugfx.text(190, 130, "safety.", ugfx.RED)
+					pyb.delay(1000)
+					room=1
+					room_1()		
 			elif room==9:
 				ugfx.fill_circle(100,172,5,ugfx.BLACK)
 				ugfx.area(190,30,300,180, ugfx.BLACK)
@@ -510,12 +565,19 @@ while True:
 					orc1,hp=orc_kicking(6, orc1, hp)
 					if orc1<=0:
 						ugfx.fill_circle(130,70,10,ugfx.RED)
-		if buttons.is_triggered("BTN_MENU"):
-			break
+			if room == 5:
+				if btn_a_presses==1:
+					#middle kick
+					orc2,hp=orc_kicking(6, orc2, hp)
+					if orc2<=0:
+						ugfx.fill_circle(130,70,10,ugfx.RED)
+			if room == 8:
+				if btn_a_presses==1:
+					#middle kick
+					orc3,hp=orc_kicking(8, orc3, hp)
+					if orc3<=0:
+						ugfx.fill_circle(130,70,10,ugfx.RED)
 		
-	while True:
-		if buttons.is_triggered("BTN_MENU"):
-			break	
-		pyb.wfi() 
-
+	pyb.wfi() 
+	
 
